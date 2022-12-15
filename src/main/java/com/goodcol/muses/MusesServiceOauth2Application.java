@@ -12,6 +12,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *
  * <a href="https://jwt.ms/">https://jwt.ms/</a>
  *
+ * <a href="https://blog.51cto.com/u_14558366/3135455">https://blog.51cto.com/u_14558366/3135455</a>
+ *
  * <a href="https://blog.csdn.net/dghkgjlh/article/details/121665795">https://blog.csdn.net/dghkgjlh/article/details/121665795</a>
  *
  * <a href="https://docs.spring.io/spring-authorization-server/docs/current/reference/html/configuration-model.html#default-configuration">https://docs.spring.io/spring-authorization-server/docs/current/reference/html/configuration-model.html#default-configuration</a>

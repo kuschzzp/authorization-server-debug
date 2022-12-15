@@ -67,7 +67,7 @@ public class AuthorizationServerConfig {
 
         http.exceptionHandling(exceptions ->
                         exceptions.authenticationEntryPoint(
-                                new LoginUrlAuthenticationEntryPoint("/login123"))
+                                new LoginUrlAuthenticationEntryPoint("/login"))
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
 
