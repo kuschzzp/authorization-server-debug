@@ -1,5 +1,9 @@
 package com.goodcol.muses;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.goodcol.muses.entity.OauthAuthorization;
+import com.goodcol.muses.repository.AuthorizationRepository;
 import com.goodcol.muses.repository.ClientRepository;
 import com.goodcol.muses.service.MysqlRegisteredClientRepositoryImpl;
 import jakarta.annotation.Resource;
@@ -17,6 +21,8 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest
@@ -27,6 +33,29 @@ class MusesServiceOauth2ApplicationTests {
 
     @Resource
     private ClientRepository clientRepository;
+
+    @Resource
+    private AuthorizationRepository authorizationRepository;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Test
+    void test() {
+
+        Optional<OauthAuthorization> byAccessTokenValue = authorizationRepository.findByAccessTokenValue(
+                "eyJraWQiOiI0MTdhMTA0Mi04ODVlLTQwY2ItYjJlMS1hNDc5OTU0ZjdkN2MiLCJhbGciOiJSUzI1NiJ9" +
+                        ".eyJzdWIiOiJ1c2VyMSIsImF1ZCI6Im1lc3NhZ2luZy1jbGllbnQiLCJuYmYiOjE2NzExNTc3MDcsImlzcyI6Imh0dHA6Ly8xMjcuMC4wLjE6ODU1NSIsImFjY2Vzc3p6cHp6cHp6cCI6ImFjY2Vzc3p6cHp6cHp6cCIsIndhbmd3dSI6Indhbmd3dXdhbmd3dXdhbmd3dSIsImV4cCI6MTY3MTE1OTUwNywiaWF0IjoxNjcxMTU3NzA3fQ.g91krNKTD0B0CaxJ1LII80y9LNAaY0LohVAbCPLgSIBExadb0HElxaRmMPOxu9VToiQqhRA7ebXi5XueNkQfy5cEQXzRRnZ-ACmBoWFRosKy-kDaK0lPq16lhsVXsPt36LGkiJO08RKbwx_o089UTudaybcqkM-tOpwqoPJa52R0CoNI3KMhXPlasbWMUHdX7Vb40BSiu7J8f9VdXYkQqHwR5XZFLm905PGPP2Vg56V0P8Vu_iJIJKEjYR0stw1Wf_-Cz7YCg11nh-nFdCo-uxyX2QTM5F2t34FiwAS_OrmSwJLQzviGZ-L_ywOOb9D4kr6KwwSRwxt498kLkXhRAA");
+
+        Map<String, Object> map = null;
+        try {
+            map = objectMapper.readValue(objectMapper.writeValueAsString(byAccessTokenValue.get()),
+                    new TypeReference<Map<String, Object>>() {
+                    });
+            System.out.println(map.get("oidcIdTokenClaims"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Test
     void contextLoads() {

@@ -14,7 +14,7 @@
 	<script>
 		function cancelConsent() {
 			document.consent_form.reset();
-			// document.consent_form.submit();
+			document.consent_form.submit();
 		}
 	</script>
 </head>
@@ -70,7 +70,7 @@
                     </button>
                 </div>
                 <div class="form-group">
-                    <button class="btn btn-link regular" type="button" id="cancel-consent" onclick="javascript:history.back(-1);">
+                    <button class="btn btn-link regular" type="button" id="cancel-consent" onclick="cancelConsent();">
                         Cancel
                     </button>
                 </div>

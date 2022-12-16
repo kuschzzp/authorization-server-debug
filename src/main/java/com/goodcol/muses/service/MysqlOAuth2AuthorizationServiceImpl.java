@@ -1,14 +1,12 @@
 package com.goodcol.muses.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.goodcol.muses.entity.OauthAuthorization;
 import com.goodcol.muses.repository.AuthorizationRepository;
 import com.goodcol.muses.utils.CommonUtils;
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.security.jackson2.CoreJackson2Module;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -29,10 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.sql.Date;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.function.Consumer;
 
 @Component
@@ -54,6 +49,9 @@ public class MysqlOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         this.objectMapper.registerModules(SecurityJackson2Modules.getModules(classLoader));
         this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
         this.objectMapper.registerModule(new JavaTimeModule());
+        //解决 Collections.singletonMap 不在 allow list 的问题
+        this.objectMapper.addMixIn(Collections.singletonMap(String.class, Object.class).getClass(),
+                SingletonMapMixin.class);
     }
 
     @Override
@@ -164,9 +162,15 @@ public class MysqlOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         entity.setRegisteredClientId(authorization.getRegisteredClientId());
         entity.setPrincipalName(authorization.getPrincipalName());
         entity.setAuthorizationGrantType(authorization.getAuthorizationGrantType().getValue());
-        entity.setAuthorizedScopes(StringUtils.collectionToDelimitedString(authorization.getAuthorizedScopes(), ","));
+
+        String authorizedScopes = StringUtils.collectionToDelimitedString(authorization.getAuthorizedScopes(), ",");
+        entity.setAuthorizedScopes(
+                StringUtils.hasText(authorizedScopes) ? authorizedScopes : null);
+
         entity.setAttributes(writeMap(authorization.getAttributes()));
-        entity.setState(authorization.getAttribute(OAuth2ParameterNames.STATE));
+
+        Object state = authorization.getAttribute(OAuth2ParameterNames.STATE);
+        entity.setState(Objects.isNull(state) ? null : String.valueOf(state));
 
         OAuth2Authorization.Token<OAuth2AuthorizationCode> authorizationCode =
                 authorization.getToken(OAuth2AuthorizationCode.class);
@@ -235,7 +239,8 @@ public class MysqlOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 
     private Map<String, Object> parseMap(String data) {
         try {
-            return this.objectMapper.readValue(data, new TypeReference<Map<String, Object>>() {});
+            return this.objectMapper.readValue(data, new TypeReference<Map<String, Object>>() {
+            });
         } catch (Exception ex) {
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
@@ -257,6 +262,6 @@ public class MysqlOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
         } else if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(authorizationGrantType)) {
             return AuthorizationGrantType.REFRESH_TOKEN;
         }
-        return new AuthorizationGrantType(authorizationGrantType);              // Custom authorization grant type
+        return new AuthorizationGrantType(authorizationGrantType);
     }
 }

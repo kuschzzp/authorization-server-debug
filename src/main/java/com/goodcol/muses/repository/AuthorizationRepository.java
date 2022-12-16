@@ -25,7 +25,7 @@ public class AuthorizationRepository {
     public void save(OauthAuthorization authorization) {
         int update = jdbcOperations.update("insert into oauth_authorization (id, registered_client_id, " +
                         "principal_name, " +
-                        "authorization_grant_type, attributes, state, authorization_code_value, " +
+                        "authorization_grant_type,authorized_scopes,attributes, state, authorization_code_value, " +
                         "authorization_code_issued_at," +
                         " authorization_code_expires_at, authorization_code_metadata, access_token_value, " +
                         "access_token_issued_at, access_token_expires_at, access_token_metadata, access_token_type, " +
@@ -33,11 +33,12 @@ public class AuthorizationRepository {
                         "refresh_token_metadata, oidc_id_token_value, oidc_id_token_issued_at, " +
                         "oidc_id_token_expires_at, " +
                         "oidc_id_token_metadata, oidc_id_token_claims) value (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?," +
-                        "?,?,?,?,?,?)",
+                        "?,?,?,?,?,?,?)",
                 authorization.getId(),
                 authorization.getRegisteredClientId(),
                 authorization.getPrincipalName(),
                 authorization.getAuthorizationGrantType(),
+                authorization.getAuthorizedScopes(),
                 authorization.getAttributes(),
                 authorization.getState(),
                 authorization.getAuthorizationCodeValue(),
@@ -69,6 +70,7 @@ public class AuthorizationRepository {
                         "set registered_client_id=?, " +
                         "principal_name=?, " +
                         "authorization_grant_type=?, " +
+                        "authorized_scopes=?, " +
                         "attributes=?, " +
                         "state=?, " +
                         "authorization_code_value=?, " +
@@ -94,6 +96,7 @@ public class AuthorizationRepository {
                 authorization.getRegisteredClientId(),
                 authorization.getPrincipalName(),
                 authorization.getAuthorizationGrantType(),
+                authorization.getAuthorizedScopes(),
                 authorization.getAttributes(),
                 authorization.getState(),
                 authorization.getAuthorizationCodeValue(),
@@ -130,7 +133,7 @@ public class AuthorizationRepository {
 
     public Optional<OauthAuthorization> findById(String id) {
         OauthAuthorization authorization = jdbcOperations.queryForObject("select id, registered_client_id, " +
-                        "principal_name, authorization_grant_type, " +
+                        "principal_name, authorization_grant_type, authorized_scopes," +
                         "attributes, state, authorization_code_value, authorization_code_issued_at, " +
                         "authorization_code_expires_at, authorization_code_metadata, access_token_value, " +
                         "access_token_issued_at, access_token_expires_at, access_token_metadata, access_token_type, " +
@@ -145,7 +148,7 @@ public class AuthorizationRepository {
 
     public Optional<OauthAuthorization> findByState(String state) {
         OauthAuthorization authorization = jdbcOperations.queryForObject("select id, registered_client_id, " +
-                        "principal_name, authorization_grant_type, " +
+                        "principal_name, authorization_grant_type, authorized_scopes," +
                         "attributes, state, authorization_code_value, authorization_code_issued_at, " +
                         "authorization_code_expires_at, authorization_code_metadata, access_token_value, " +
                         "access_token_issued_at, access_token_expires_at, access_token_metadata, access_token_type, " +
@@ -160,7 +163,7 @@ public class AuthorizationRepository {
 
     public Optional<OauthAuthorization> findByAuthorizationCodeValue(String authorizationCode) {
         OauthAuthorization authorization = jdbcOperations.queryForObject("select id, registered_client_id, " +
-                        "principal_name, authorization_grant_type, " +
+                        "principal_name, authorization_grant_type, authorized_scopes," +
                         "attributes, state, authorization_code_value, authorization_code_issued_at, " +
                         "authorization_code_expires_at, authorization_code_metadata, access_token_value, " +
                         "access_token_issued_at, access_token_expires_at, access_token_metadata, access_token_type, " +
@@ -176,7 +179,7 @@ public class AuthorizationRepository {
 
     public Optional<OauthAuthorization> findByAccessTokenValue(String accessToken) {
         OauthAuthorization authorization = jdbcOperations.queryForObject("select id, registered_client_id, " +
-                        "principal_name, authorization_grant_type, " +
+                        "principal_name, authorization_grant_type,authorized_scopes, " +
                         "attributes, state, authorization_code_value, authorization_code_issued_at, " +
                         "authorization_code_expires_at, authorization_code_metadata, access_token_value, " +
                         "access_token_issued_at, access_token_expires_at, access_token_metadata, access_token_type, " +
@@ -192,7 +195,7 @@ public class AuthorizationRepository {
 
     public Optional<OauthAuthorization> findByRefreshTokenValue(String refreshToken) {
         OauthAuthorization authorization = jdbcOperations.queryForObject("select id, registered_client_id, " +
-                        "principal_name, authorization_grant_type, " +
+                        "principal_name, authorization_grant_type,authorized_scopes, " +
                         "attributes, state, authorization_code_value, authorization_code_issued_at, " +
                         "authorization_code_expires_at, authorization_code_metadata, access_token_value, " +
                         "access_token_issued_at, access_token_expires_at, access_token_metadata, access_token_type, " +
@@ -208,7 +211,8 @@ public class AuthorizationRepository {
 
     public Optional<OauthAuthorization> findByStateOrAuthorizationCodeValueOrAccessTokenValueOrRefreshTokenValue(String token) {
         OauthAuthorization authorization = jdbcOperations.queryForObject("select id, registered_client_id, " +
-                        "principal_name, authorization_grant_type, attributes, state, authorization_code_value, " +
+                        "principal_name, authorization_grant_type,authorized_scopes, attributes, state, " +
+                        "authorization_code_value, " +
                         "authorization_code_issued_at, authorization_code_expires_at, authorization_code_metadata, " +
                         "access_token_value, access_token_issued_at, access_token_expires_at, access_token_metadata, " +
                         "access_token_type, access_token_scopes, refresh_token_value, refresh_token_issued_at, " +
