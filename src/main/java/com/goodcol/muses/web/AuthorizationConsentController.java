@@ -16,7 +16,7 @@ import java.security.Principal;
 import java.util.*;
 
 /**
- * @author Daniel Garnier-Moiroux
+ * 自定义的授权同意 URL
  */
 @Controller
 public class AuthorizationConsentController {

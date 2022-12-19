@@ -4,6 +4,7 @@ CREATE TABLE oauth_authorization (
     registered_client_id varchar(255) NOT NULL,
     principal_name varchar(255) NOT NULL,
     authorization_grant_type varchar(255) NOT NULL,
+    authorized_scopes varchar(1000) null,
     attributes TEXT DEFAULT NULL,
     state varchar(500) DEFAULT NULL,
     authorization_code_value TEXT DEFAULT NULL,

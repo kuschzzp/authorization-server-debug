@@ -1,4 +1,4 @@
-package com.goodcol.muses.service;
+package com.goodcol.muses.jackson;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -9,7 +9,7 @@ import java.util.Map;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 @JsonDeserialize(using = SingletonMapDeserializer.class)
-abstract class SingletonMapMixin {
+public abstract class SingletonMapMixin {
 
     @JsonCreator
     SingletonMapMixin(Map<?, ?> map) {

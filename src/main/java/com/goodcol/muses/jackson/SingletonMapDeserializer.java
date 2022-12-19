@@ -1,4 +1,4 @@
-package com.goodcol.muses.service;
+package com.goodcol.muses.jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -12,7 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 
-final class SingletonMapDeserializer extends JsonDeserializer<Map<?, ?>> {
+public final class SingletonMapDeserializer extends JsonDeserializer<Map<?, ?>> {
 
     @Override
     public Map<?, ?> deserialize(JsonParser parser, DeserializationContext context) throws IOException {

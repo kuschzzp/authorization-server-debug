@@ -3,8 +3,10 @@ package com.goodcol.muses;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goodcol.muses.entity.OauthAuthorization;
+import com.goodcol.muses.entity.OauthTestUser;
 import com.goodcol.muses.repository.AuthorizationRepository;
 import com.goodcol.muses.repository.ClientRepository;
+import com.goodcol.muses.repository.UserRepository;
 import com.goodcol.muses.service.MysqlRegisteredClientRepositoryImpl;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,9 @@ class MusesServiceOauth2ApplicationTests {
     private ClientRepository clientRepository;
 
     @Resource
+    private UserRepository userRepository;
+
+    @Resource
     private AuthorizationRepository authorizationRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -57,6 +62,9 @@ class MusesServiceOauth2ApplicationTests {
         }
     }
 
+    /**
+     * 模拟向数据库注册信息
+     */
     @Test
     void contextLoads() {
         //        System.out.println(jdbcOperations.queryForList("select * from oauth_authorization_consent"));
@@ -66,16 +74,18 @@ class MusesServiceOauth2ApplicationTests {
                 .clientIdIssuedAt(Instant.now())
                 .clientSecretExpiresAt(null)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                //支持的授权类型
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 //可以配置多个重定向地址
-                .redirectUri("http://127.0.0.1:8998/test/test1")
-                .redirectUri("http://127.0.0.1:8998/hahahaha")
+                .redirectUri("http://127.0.0.1:8555/test/test1")
+                .redirectUri("http://127.0.0.1:8555/hahahaha")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .scope("message.read")
                 .scope("message.write")
+                .scope("niubi666")
                 .clientSettings(
                         ClientSettings.builder()
                                 .requireAuthorizationConsent(true)
@@ -83,6 +93,7 @@ class MusesServiceOauth2ApplicationTests {
                                 .build()
                 ).tokenSettings(
                         TokenSettings.builder()
+                                //token有效期
                                 .accessTokenTimeToLive(Duration.ofMinutes(30))
                                 .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
                                 .refreshTokenTimeToLive(Duration.ofDays(30))
@@ -96,6 +107,19 @@ class MusesServiceOauth2ApplicationTests {
             throw new RuntimeException("客户端ID已存在！");
         }
         registeredClientRepository.save(registeredClient);
+        System.out.println("新建注册的客户端信息成功======================================");
+
+        OauthTestUser testUser = new OauthTestUser();
+        testUser.setUsername("zhangsan");
+        testUser.setPassword("{noop}123123");
+        testUser.setAuthCodes("A,B,C,D,E,F");
+
+        Optional<OauthTestUser> zhangsan = userRepository.findUserByUsername("zhangsan");
+        if (zhangsan.isPresent()) {
+            throw new RuntimeException("用户zhangsan已存在！");
+        }
+        userRepository.save(testUser);
+        System.out.println("新建用户 zhangsan----123123 成功======================================");
 
     }
 }

@@ -35,11 +35,6 @@ import javax.sql.DataSource;
 @Configuration(proxyBeanMethods = false)
 public class AuthorizationServerConfig {
 
-    /**
-     * 自定义的同意授权URL
-     */
-    private static final String CUSTOM_CONSENT_PAGE_URI = "/oauth2/consent";
-
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -50,7 +45,7 @@ public class AuthorizationServerConfig {
         authorizationServerConfigurer
                 .authorizationEndpoint(authorizationEndpoint ->
                         // 自定义授权页面URL
-                        authorizationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI)
+                        authorizationEndpoint.consentPage("/oauth2/consent")
                 );
 
         RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
@@ -89,8 +84,8 @@ public class AuthorizationServerConfig {
             }
             if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
                 context.getClaims().claims((claims) -> {
-                    claims.put("accesszzpzzpzzp", "accesszzpzzpzzp");
-                    claims.put("wangwu", "wangwuwangwuwangwu");
+                    claims.put("ikun", "蔡徐坤");
+                    claims.put("ikunnnnnn", "小黑子");
                 });
             }
         };
