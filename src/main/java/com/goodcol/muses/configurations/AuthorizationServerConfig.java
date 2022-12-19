@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -28,6 +28,8 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 授权服务相关信息
@@ -54,11 +56,29 @@ public class AuthorizationServerConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize.anyRequest().authenticated()
                 )
-//                .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
+
+                //                .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
                 .csrf().disable()
+
                 .apply(authorizationServerConfigurer)
                 // 开启支持 OpenID Connect 1.0 其实就是返回值多了一个id_token
-                .oidc(Customizer.withDefaults());
+                //                .oidc(Customizer.withDefaults());
+
+                .oidc(oidc -> {
+                            //这里是往  /userinfo 接口返回值放内容
+                            oidc.userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint.userInfoMapper(
+                                    oidcUserInfoAuthenticationContext -> {
+                                        OAuth2AccessToken accessToken =
+                                                oidcUserInfoAuthenticationContext.getAccessToken();
+                                        Map<String, Object> claims = new HashMap<>();
+                                        claims.put("accessToken", accessToken);
+                                        claims.put("sub",
+                                                oidcUserInfoAuthenticationContext.getAuthorization().getPrincipalName());
+                                        return new OidcUserInfo(claims);
+
+                                    }));
+                        }
+                );
 
         http.exceptionHandling(exceptions ->
                         exceptions.authenticationEntryPoint(
@@ -73,14 +93,12 @@ public class AuthorizationServerConfig {
      * 为token的claims中增加自定义内容
      */
     @Bean
-    public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(
-            OidcUserInfoService userInfoService) {
+    public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(OidcUserInfoService userInfoService) {
         return (context) -> {
             if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
-                OidcUserInfo userInfo = userInfoService.loadUser(
-                        context.getPrincipal().getName());
-                context.getClaims().claims(claims ->
-                        claims.putAll(userInfo.getClaims()));
+                // 这里是往 id_token中放内容
+                OidcUserInfo userInfo = userInfoService.loadUser(context.getPrincipal().getName());
+                context.getClaims().claims(claims -> claims.putAll(userInfo.getClaims()));
             }
             if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
                 context.getClaims().claims((claims) -> {

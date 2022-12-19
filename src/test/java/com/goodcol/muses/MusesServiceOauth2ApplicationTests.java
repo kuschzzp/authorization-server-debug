@@ -67,7 +67,10 @@ class MusesServiceOauth2ApplicationTests {
      */
     @Test
     void contextLoads() {
-        //        System.out.println(jdbcOperations.queryForList("select * from oauth_authorization_consent"));
+        /*
+         * 内置的客户端注册端点
+         * org.springframework.security.oauth2.server.authorization.oidc.web.OidcClientRegistrationEndpointFilter
+         */
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("messaging-client")
                 .clientSecret("{noop}secret")

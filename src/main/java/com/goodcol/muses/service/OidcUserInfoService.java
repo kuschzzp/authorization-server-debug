@@ -28,6 +28,7 @@ public class OidcUserInfoService {
                 .email("ikun@123.com")
                 .birthdate("0000-00-00")
                 .nickname("唱跳rap篮球")
+                .claim("ABCDEF", userByUsername.get().getAuthCodes())
                 .claim("username", oauthTestUser.getUsername())
                 .claim("ikunnnnnnnn", "张三是爱坤")
                 .build()).orElseGet(() -> new OidcUserInfo(new HashMap<>()));
