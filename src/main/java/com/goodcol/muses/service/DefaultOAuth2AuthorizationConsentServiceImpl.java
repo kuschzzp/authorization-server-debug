@@ -10,7 +10,6 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -18,14 +17,13 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-@Component
-public class MysqlOAuth2AuthorizationConsentServiceImpl implements OAuth2AuthorizationConsentService {
+public class DefaultOAuth2AuthorizationConsentServiceImpl implements OAuth2AuthorizationConsentService {
 
     private final AuthorizationConsentRepository authorizationConsentRepository;
     private final RegisteredClientRepository registeredClientRepository;
 
-    public MysqlOAuth2AuthorizationConsentServiceImpl(AuthorizationConsentRepository authorizationConsentRepository,
-                                                      RegisteredClientRepository registeredClientRepository) {
+    public DefaultOAuth2AuthorizationConsentServiceImpl(AuthorizationConsentRepository authorizationConsentRepository,
+                                                        RegisteredClientRepository registeredClientRepository) {
         Assert.notNull(authorizationConsentRepository, "authorizationConsentRepository cannot be null");
         Assert.notNull(registeredClientRepository, "registeredClientRepository cannot be null");
         this.authorizationConsentRepository = authorizationConsentRepository;

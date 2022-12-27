@@ -7,7 +7,7 @@ import com.goodcol.muses.entity.OauthTestUser;
 import com.goodcol.muses.repository.AuthorizationRepository;
 import com.goodcol.muses.repository.ClientRepository;
 import com.goodcol.muses.repository.UserRepository;
-import com.goodcol.muses.service.MysqlRegisteredClientRepositoryImpl;
+import com.goodcol.muses.service.DefaultRegisteredClientRepositoryImpl;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -108,7 +108,7 @@ class MusesServiceOauth2ApplicationTests {
                 .build();
 
         RegisteredClientRepository registeredClientRepository
-                = new MysqlRegisteredClientRepositoryImpl(clientRepository);
+                = new DefaultRegisteredClientRepositoryImpl(clientRepository);
         RegisteredClient byClientId = registeredClientRepository.findByClientId("messaging-client");
         if (byClientId != null) {
             throw new RuntimeException("客户端ID已存在！");

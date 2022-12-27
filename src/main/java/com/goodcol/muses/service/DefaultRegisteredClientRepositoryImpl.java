@@ -1,6 +1,5 @@
 package com.goodcol.muses.service;
 
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -18,23 +17,21 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
 
-@Component
-public class MysqlRegisteredClientRepositoryImpl implements RegisteredClientRepository {
+public class DefaultRegisteredClientRepositoryImpl implements RegisteredClientRepository {
 
     private final ClientRepository clientRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public MysqlRegisteredClientRepositoryImpl(ClientRepository clientRepository) {
+    public DefaultRegisteredClientRepositoryImpl(ClientRepository clientRepository) {
         Assert.notNull(clientRepository, "clientRepository cannot be null");
         this.clientRepository = clientRepository;
 
-        ClassLoader classLoader = MysqlRegisteredClientRepositoryImpl.class.getClassLoader();
+        ClassLoader classLoader = DefaultRegisteredClientRepositoryImpl.class.getClassLoader();
         this.objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
         this.objectMapper.registerModules(SecurityJackson2Modules.getModules(classLoader));
         this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
