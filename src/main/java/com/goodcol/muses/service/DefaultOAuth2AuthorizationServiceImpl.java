@@ -24,7 +24,6 @@ import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -33,21 +32,20 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
 
-@Component
-public class MysqlOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationService {
+public class DefaultOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationService {
 
     private final AuthorizationRepository authorizationRepository;
     private final RegisteredClientRepository registeredClientRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public MysqlOAuth2AuthorizationServiceImpl(AuthorizationRepository authorizationRepository,
-                                               RegisteredClientRepository registeredClientRepository) {
+    public DefaultOAuth2AuthorizationServiceImpl(AuthorizationRepository authorizationRepository,
+                                                 RegisteredClientRepository registeredClientRepository) {
         Assert.notNull(authorizationRepository, "authorizationRepository cannot be null");
         Assert.notNull(registeredClientRepository, "registeredClientRepository cannot be null");
         this.authorizationRepository = authorizationRepository;
         this.registeredClientRepository = registeredClientRepository;
 
-        ClassLoader classLoader = MysqlOAuth2AuthorizationServiceImpl.class.getClassLoader();
+        ClassLoader classLoader = DefaultOAuth2AuthorizationServiceImpl.class.getClassLoader();
         this.objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
         this.objectMapper.registerModules(SecurityJackson2Modules.getModules(classLoader));
         this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
