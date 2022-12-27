@@ -25,8 +25,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 /**
  * 基础配置
  */
@@ -37,8 +35,16 @@ public class DefaultSecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize ->
-                authorize.anyRequest().authenticated()
-        ).formLogin(withDefaults());
+                        authorize
+                                .requestMatchers("/login", "/oauth2/login").anonymous()
+                                .anyRequest().authenticated()
+                )
+                .formLogin(configurer ->
+                        configurer.loginPage("/login")
+                                .loginProcessingUrl("/oauth2/login")
+                )
+                //这个如果你自定义的页面中没有一个csrf_token的话得配置，不然最初的过滤器都通过不了
+                .csrf().disable();
         return http.build();
     }
 
