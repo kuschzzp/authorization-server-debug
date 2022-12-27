@@ -12,6 +12,7 @@ import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -67,13 +68,16 @@ class MusesServiceOauth2ApplicationTests {
      */
     @Test
     void contextLoads() {
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+
         /*
          * 内置的客户端注册端点
          * org.springframework.security.oauth2.server.authorization.oidc.web.OidcClientRegistrationEndpointFilter
          */
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("messaging-client")
-                .clientSecret("{noop}secret")
+//                .clientSecret("{noop}secret")
+                .clientSecret(bCryptPasswordEncoder.encode("secret"))
                 .clientIdIssuedAt(Instant.now())
                 .clientSecretExpiresAt(null)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
@@ -114,7 +118,8 @@ class MusesServiceOauth2ApplicationTests {
 
         OauthTestUser testUser = new OauthTestUser();
         testUser.setUsername("zhangsan");
-        testUser.setPassword("{noop}123123");
+//        testUser.setPassword("{noop}123123");
+        testUser.setPassword(bCryptPasswordEncoder.encode("123123"));
         testUser.setAuthCodes("A,B,C,D,E,F");
 
         Optional<OauthTestUser> zhangsan = userRepository.findUserByUsername("zhangsan");
@@ -125,4 +130,21 @@ class MusesServiceOauth2ApplicationTests {
         System.out.println("新建用户 zhangsan----123123 成功======================================");
 
     }
+
+
+    @Test
+    public void en() {
+
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+
+        String encode = bCryptPasswordEncoder.encode("123123");
+
+        boolean matches = bCryptPasswordEncoder.matches("123123", encode);
+
+        System.out.println("123123加密后：" + encode);
+        System.out.println("匹配：" + matches);
+
+    }
+
+
 }
