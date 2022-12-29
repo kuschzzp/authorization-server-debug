@@ -23,6 +23,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * <a href="https://docs.spring.io/spring-authorization-server/docs/current/reference/html/guides/how-to-jpa.html#define-data-model">https://docs.spring.io/spring-authorization-server/docs/current/reference/html/guides/how-to-jpa.html#define-data-model</a>
  *
  * <a href="https://docs.spring.io/spring-authorization-server/docs/current/reference/html/protocol-endpoints.html#oidc-user-info-endpoint">https://docs.spring.io/spring-authorization-server/docs/current/reference/html/protocol-endpoints.html#oidc-user-info-endpoint</a>
+ *
+ *
+ * <a href="https://tonyxu-io.github.io/pkce-generator/">在线生成PKCE</a>
+ *
+ * <a href="https://base64.us/">在线base64</a>
+ *
+ * <a href="https://jwt.ms/">在线解析token</a>
+ *
+ * <a href="https://uutool.cn/rsa-generate/">在线生成RSA</a>
+ *
  * </pre>
  *
  * @author Mr.kusch
