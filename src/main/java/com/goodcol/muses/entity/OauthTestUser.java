@@ -7,7 +7,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
-
+/**
+ * not in allow list 问题参考文章
+ * <br></br>
+ * https://blog.csdn.net/m13012606980/article/details/125291005
+ */
 @Data
 public class OauthTestUser implements UserDetails {
 
