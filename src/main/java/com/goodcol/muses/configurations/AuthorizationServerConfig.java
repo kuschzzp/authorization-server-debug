@@ -1,8 +1,9 @@
 
 package com.goodcol.muses.configurations;
 
+import com.goodcol.muses.entity.OauthTestUser;
 import com.goodcol.muses.jose.Jwks;
-import com.goodcol.muses.service.OidcUserInfoService;
+import com.goodcol.muses.repository.UserRepository;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -30,6 +31,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 授权服务相关信息
@@ -93,12 +95,21 @@ public class AuthorizationServerConfig {
      * 为token的claims中增加自定义内容
      */
     @Bean
-    public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(OidcUserInfoService userInfoService) {
+    public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserRepository userRepository) {
         return (context) -> {
             if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
+                Optional<OauthTestUser> userByUsername
+                        = userRepository.findUserByUsername(context.getPrincipal().getName());
+                OidcUserInfo oidcUserInfo = userByUsername.map(oauthTestUser -> OidcUserInfo.builder()
+                        .email("ikun@123.com")
+                        .birthdate("0000-00-00")
+                        .nickname("唱跳rap篮球")
+                        .claim("ABCDEF", userByUsername.get().getAuthCodes())
+                        .claim("username", oauthTestUser.getUsername())
+                        .claim("ikunnnnnnnn", "张三是爱坤")
+                        .build()).orElseGet(() -> new OidcUserInfo(new HashMap<>()));
                 // 这里是往 id_token中放内容
-                OidcUserInfo userInfo = userInfoService.loadUser(context.getPrincipal().getName());
-                context.getClaims().claims(claims -> claims.putAll(userInfo.getClaims()));
+                context.getClaims().claims(claims -> claims.putAll(oidcUserInfo.getClaims()));
             }
             if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
                 context.getClaims().claims((claims) -> {
