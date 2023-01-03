@@ -33,7 +33,7 @@ public class UserRepository {
 
     public void save(OauthTestUser user) {
         int update = jdbcOperations.update(
-                "insert into oauth_test_user(username, password, auth_codes) value (?,?,?)",
+                "insert into oauth_test_user(username, password, auth_codes) values (?,?,?)",
                 user.getUsername(),
                 user.getPassword(),
                 user.getAuthCodes());

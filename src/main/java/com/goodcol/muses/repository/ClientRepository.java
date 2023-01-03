@@ -5,7 +5,6 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -16,7 +15,6 @@ import java.util.Optional;
  * @date 2022/12/15 13:50
  */
 @Slf4j
-@Repository
 public class ClientRepository {
 
     @Resource
@@ -38,7 +36,8 @@ public class ClientRepository {
         int update = jdbcOperations.update(
                 "insert into oauth_client(id, client_id, client_id_issued_at, client_secret, " +
                         "client_secret_expires_at, client_name, client_authentication_methods, " +
-                        "authorization_grant_types, redirect_uris, scopes, client_settings, token_settings) value (?," +
+                        "authorization_grant_types, redirect_uris, scopes, client_settings, token_settings) values " +
+                        "(?," +
                         "?,?,?,?,?,?,?,?,?,?,?)",
                 client.getId(),
                 client.getClientId(),

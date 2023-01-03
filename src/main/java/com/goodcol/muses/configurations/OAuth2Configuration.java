@@ -68,4 +68,49 @@ public class OAuth2Configuration {
         return new DefaultRegisteredClientRepositoryImpl(clientRepository);
     }
 
+
+
+    /**
+     * 操作授权同意的sql
+     *
+     * @param
+     * @return com.goodcol.muses.oauth.repository.AuthorizationConsentRepository
+     * @author Mr.kusch
+     * @date 2022/12/30 10:43
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AuthorizationConsentRepository authorizationConsentRepository() {
+        return new AuthorizationConsentRepository();
+    }
+
+    /**
+     * 操作授权sql
+     *
+     * @param
+     * @return com.goodcol.muses.oauth.repository.AuthorizationRepository
+     * @author Mr.kusch
+     * @date 2022/12/30 10:43
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AuthorizationRepository authorizationRepository() {
+        return new AuthorizationRepository();
+    }
+
+    /**
+     * 操作客户端sql
+     *
+     * @param
+     * @return com.goodcol.muses.oauth.repository.ClientRepository
+     * @author Mr.kusch
+     * @date 2022/12/30 10:43
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ClientRepository clientRepository() {
+        return new ClientRepository();
+    }
+
+
 }

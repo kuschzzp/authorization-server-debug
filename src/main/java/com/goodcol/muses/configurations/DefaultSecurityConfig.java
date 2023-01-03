@@ -16,6 +16,7 @@
 package com.goodcol.muses.configurations;
 
 import com.goodcol.muses.service.MySQLUserDetailServiceImpl;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -49,6 +50,7 @@ public class DefaultSecurityConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     UserDetailsService users() {
         //        UserDetails user = User.withDefaultPasswordEncoder()
         //                .username("user1")

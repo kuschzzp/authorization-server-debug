@@ -2,6 +2,7 @@ package com.goodcol.muses;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.goodcol.muses.constants.DataSourceConstants;
 import com.goodcol.muses.entity.OauthAuthorization;
 import com.goodcol.muses.entity.OauthTestUser;
 import com.goodcol.muses.repository.AuthorizationRepository;
@@ -10,8 +11,11 @@ import com.goodcol.muses.repository.UserRepository;
 import com.goodcol.muses.service.DefaultRegisteredClientRepositoryImpl;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -21,9 +25,13 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.util.Assert;
 
+import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +41,9 @@ class MusesServiceOauth2ApplicationTests {
 
     @Resource
     private JdbcOperations jdbcOperations;
+
+    @Resource
+    private JdbcTemplate jdbcTemplate;
 
     @Resource
     private ClientRepository clientRepository;
@@ -76,7 +87,7 @@ class MusesServiceOauth2ApplicationTests {
          */
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("messaging-client")
-//                .clientSecret("{noop}secret")
+                //                .clientSecret("{noop}secret")
                 .clientSecret(bCryptPasswordEncoder.encode("secret"))
                 .clientIdIssuedAt(Instant.now())
                 .clientSecretExpiresAt(null)
@@ -118,7 +129,7 @@ class MusesServiceOauth2ApplicationTests {
 
         OauthTestUser testUser = new OauthTestUser();
         testUser.setUsername("zhangsan");
-//        testUser.setPassword("{noop}123123");
+        //        testUser.setPassword("{noop}123123");
         testUser.setPassword(bCryptPasswordEncoder.encode("123123"));
         testUser.setAuthCodes("A,B,C,D,E,F");
 
@@ -131,18 +142,27 @@ class MusesServiceOauth2ApplicationTests {
 
     }
 
+    @Autowired
+    private List<DataSource> dataSourceList;
 
     @Test
     public void en() {
+        OauthAuthorization authorization = jdbcTemplate.queryForObject("select id, registered_client_id, " +
+                        "principal_name, authorization_grant_type, authorized_scopes," +
+                        "attributes, state, authorization_code_value, authorization_code_issued_at, " +
+                        "authorization_code_expires_at, authorization_code_metadata, access_token_value, " +
+                        "access_token_issued_at, access_token_expires_at, access_token_metadata, access_token_type, " +
+                        "access_token_scopes, refresh_token_value, refresh_token_issued_at, refresh_token_expires_at," +
+                        " " +
+                        "refresh_token_metadata, oidc_id_token_value, oidc_id_token_issued_at, " +
+                        "oidc_id_token_expires_at, " +
+                        "oidc_id_token_metadata, oidc_id_token_claims from oauth_authorization where " +
+                        "dbms_lob.compare(authorization_code_value, to_clob(?)) = 0",
+                new BeanPropertyRowMapper<>(OauthAuthorization.class), "7nSZzLMIXw4ZqTzJoSA1dumeebnT3U1W8oE6jY" +
+                        "-5BivLonnpTIkCE0BOq61vJ1xf33IA4fHskp-CDFlPqQHClqp2rDTafzkMI7cMfcd126HE-L9DUjMM9-OQLHCnDMmt");
 
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-
-        String encode = bCryptPasswordEncoder.encode("123123");
-
-        boolean matches = bCryptPasswordEncoder.matches("123123", encode);
-
-        System.out.println("123123加密后：" + encode);
-        System.out.println("匹配：" + matches);
+        System.out.println(authorization);
+        System.out.println(dataSourceList);
 
     }
 

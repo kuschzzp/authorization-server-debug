@@ -5,7 +5,6 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -16,7 +15,6 @@ import java.util.Optional;
  * @date 2022/12/15 13:50
  */
 @Slf4j
-@Repository
 public class AuthorizationConsentRepository {
 
     @Resource
