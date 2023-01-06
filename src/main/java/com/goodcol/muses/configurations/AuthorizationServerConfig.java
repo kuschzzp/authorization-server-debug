@@ -107,6 +107,26 @@ public class AuthorizationServerConfig {
                         .claim("ABCDEF", userByUsername.get().getAuthCodes())
                         .claim("username", oauthTestUser.getUsername())
                         .claim("ikunnnnnnnn", "张三是爱坤")
+                        .claim("zhangsan--0", "张三的个人信息0")
+                        .claim("zhangsan--1", "张三的个人信息1")
+                        .claim("zhangsan--2", "张三的个人信息2")
+                        .claim("zhangsan--3", "张三的个人信息3")
+                        .claim("zhangsan--4", "张三的个人信息4")
+                        .claim("zhangsan--5", "张三的个人信息5")
+                        .claim("zhangsan--6", "张三的个人信息6")
+                        .claim("zhangsan--7", "张三的个人信息7")
+                        .claim("zhangsan--8", "张三的个人信息8")
+                        .claim("zhangsan--9", "张三的个人信息9")
+                        .claim("zhangsan--10", "张三的个人信息10")
+                        .claim("zhangsan--11", "张三的个人信息11")
+                        .claim("zhangsan--12", "张三的个人信息12")
+                        .claim("zhangsan--13", "张三的个人信息13")
+                        .claim("zhangsan--14", "张三的个人信息14")
+                        .claim("zhangsan--15", "张三的个人信息15")
+                        .claim("zhangsan--16", "张三的个人信息16")
+                        .claim("zhangsan--17", "张三的个人信息17")
+                        .claim("zhangsan--18", "张三的个人信息18")
+                        .claim("zhangsan--19", "张三的个人信息19")
                         .build()).orElseGet(() -> new OidcUserInfo(new HashMap<>()));
                 // 这里是往 id_token中放内容
                 context.getClaims().claims(claims -> claims.putAll(oidcUserInfo.getClaims()));
@@ -114,7 +134,26 @@ public class AuthorizationServerConfig {
             if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
                 context.getClaims().claims((claims) -> {
                     claims.put("ikun", "蔡徐坤");
-                    claims.put("ikunnnnnn", "小黑子");
+                    claims.put("zhangsan--0", "张三的个人信息0");
+                    claims.put("zhangsan--1", "张三的个人信息1");
+                    claims.put("zhangsan--2", "张三的个人信息2");
+                    claims.put("zhangsan--3", "张三的个人信息3");
+                    claims.put("zhangsan--4", "张三的个人信息4");
+                    claims.put("zhangsan--5", "张三的个人信息5");
+                    claims.put("zhangsan--6", "张三的个人信息6");
+                    claims.put("zhangsan--7", "张三的个人信息7");
+                    claims.put("zhangsan--8", "张三的个人信息8");
+                    claims.put("zhangsan--9", "张三的个人信息9");
+                    claims.put("zhangsan--10", "张三的个人信息10");
+                    claims.put("zhangsan--11", "张三的个人信息11");
+                    claims.put("zhangsan--12", "张三的个人信息12");
+                    claims.put("zhangsan--13", "张三的个人信息13");
+                    claims.put("zhangsan--14", "张三的个人信息14");
+                    claims.put("zhangsan--15", "张三的个人信息15");
+                    claims.put("zhangsan--16", "张三的个人信息16");
+                    claims.put("zhangsan--17", "张三的个人信息17");
+                    claims.put("zhangsan--18", "张三的个人信息18");
+                    claims.put("zhangsan--19", "张三的个人信息19");
                 });
             }
         };

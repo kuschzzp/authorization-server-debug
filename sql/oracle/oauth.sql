@@ -1,55 +1,63 @@
-drop table if exists oauth_authorization;
-CREATE TABLE oauth_authorization (
-    id varchar(255) NOT NULL,
-    registered_client_id varchar(255) NOT NULL,
-    principal_name varchar(255) NOT NULL,
-    authorization_grant_type varchar(255) NOT NULL,
-    authorized_scopes varchar(1000) null,
-    attributes CLOB DEFAULT NULL,
-    state varchar(500) DEFAULT NULL,
-    authorization_code_value CLOB DEFAULT NULL,
-    authorization_code_issued_at timestamp DEFAULT NULL,
-    authorization_code_expires_at timestamp DEFAULT NULL,
-    authorization_code_metadata varchar(2000) DEFAULT NULL,
-    access_token_value CLOB DEFAULT NULL,
-    access_token_issued_at timestamp DEFAULT NULL,
-    access_token_expires_at timestamp DEFAULT NULL,
-    access_token_metadata varchar(2000) DEFAULT NULL,
-    access_token_type varchar(255) DEFAULT NULL,
-    access_token_scopes varchar(1000) DEFAULT NULL,
-    refresh_token_value CLOB DEFAULT NULL,
-    refresh_token_issued_at timestamp DEFAULT NULL,
-    refresh_token_expires_at timestamp DEFAULT NULL,
-    refresh_token_metadata varchar(2000) DEFAULT NULL,
-    oidc_id_token_value CLOB DEFAULT NULL,
-    oidc_id_token_issued_at timestamp DEFAULT NULL,
-    oidc_id_token_expires_at timestamp DEFAULT NULL,
-    oidc_id_token_metadata varchar(2000) DEFAULT NULL,
-    oidc_id_token_claims varchar(2000) DEFAULT NULL,
-    PRIMARY KEY (id)
+CREATE TABLE OAUTH_AUTHORIZATION
+(
+    ID                            VARCHAR(255) NOT NULL,
+    REGISTERED_CLIENT_ID          VARCHAR(255) NOT NULL,
+    PRINCIPAL_NAME                VARCHAR(255) NOT NULL,
+    AUTHORIZATION_GRANT_TYPE      VARCHAR(255) NOT NULL,
+    -- 可选授权范围 的单词，一般不会太多
+    AUTHORIZED_SCOPES             VARCHAR(512) NULL,
+    ATTRIBUTES                    CLOB          DEFAULT NULL,
+    STATE                         VARCHAR(500)  DEFAULT NULL,
+    -- 不放东西 固定128
+    AUTHORIZATION_CODE_VALUE      VARCHAR(255)  DEFAULT NULL,
+    AUTHORIZATION_CODE_ISSUED_AT  TIMESTAMP     DEFAULT NULL,
+    AUTHORIZATION_CODE_EXPIRES_AT TIMESTAMP     DEFAULT NULL,
+    -- 不放东西基本不会超过 100
+    AUTHORIZATION_CODE_METADATA   VARCHAR(255)  DEFAULT NULL,
+    -- 放置约 30 个属性 约两千多
+    ACCESS_TOKEN_VALUE            VARCHAR(3000) DEFAULT NULL,
+    ACCESS_TOKEN_ISSUED_AT        TIMESTAMP     DEFAULT NULL,
+    ACCESS_TOKEN_EXPIRES_AT       TIMESTAMP     DEFAULT NULL,
+    ACCESS_TOKEN_METADATA         VARCHAR(2000) DEFAULT NULL,
+    ACCESS_TOKEN_TYPE             VARCHAR(255)  DEFAULT NULL,
+    ACCESS_TOKEN_SCOPES           VARCHAR(512)  DEFAULT NULL,
+    -- 不放东西 固定128
+    REFRESH_TOKEN_VALUE           VARCHAR(255)  DEFAULT NULL,
+    REFRESH_TOKEN_ISSUED_AT       TIMESTAMP     DEFAULT NULL,
+    REFRESH_TOKEN_EXPIRES_AT      TIMESTAMP     DEFAULT NULL,
+    -- 不放东西基本不会超过 100
+    REFRESH_TOKEN_METADATA        VARCHAR(255)  DEFAULT NULL,
+    -- 放置20个属性 约两千多
+    OIDC_ID_TOKEN_VALUE           VARCHAR(3000) DEFAULT NULL,
+    OIDC_ID_TOKEN_ISSUED_AT       TIMESTAMP     DEFAULT NULL,
+    OIDC_ID_TOKEN_EXPIRES_AT      TIMESTAMP     DEFAULT NULL,
+    -- 下面这俩，放置20个属性，长度在 一千两三百左右
+    OIDC_ID_TOKEN_METADATA        VARCHAR(2000) DEFAULT NULL,
+    OIDC_ID_TOKEN_CLAIMS          VARCHAR(2000) DEFAULT NULL,
+    PRIMARY KEY (ID)
 );
 
-drop table if exists oauth_authorization_consent;
-CREATE TABLE oauth_authorization_consent (
-    registered_client_id varchar(255) NOT NULL,
-    principal_name varchar(255) NOT NULL,
-    authorities varchar(1000) NOT NULL,
-    PRIMARY KEY (registered_client_id, principal_name)
+CREATE TABLE OAUTH_AUTHORIZATION_CONSENT
+(
+    REGISTERED_CLIENT_ID VARCHAR(255)  NOT NULL,
+    PRINCIPAL_NAME       VARCHAR(255)  NOT NULL,
+    AUTHORITIES          VARCHAR(1000) NOT NULL,
+    PRIMARY KEY (REGISTERED_CLIENT_ID, PRINCIPAL_NAME)
 );
 
-drop table if exists oauth_client;
-CREATE TABLE oauth_client (
-    id varchar(255) NOT NULL,
-    client_id varchar(255) NOT NULL,
-    client_id_issued_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    client_secret varchar(255) DEFAULT NULL,
-    client_secret_expires_at timestamp DEFAULT NULL,
-    client_name varchar(255) NOT NULL,
-    client_authentication_methods varchar(1000) NOT NULL,
-    authorization_grant_types varchar(1000) NOT NULL,
-    redirect_uris varchar(1000) DEFAULT NULL,
-    scopes varchar(1000) NOT NULL,
-    client_settings varchar(2000) NOT NULL,
-    token_settings varchar(2000) NOT NULL,
-    PRIMARY KEY (id)
+CREATE TABLE OAUTH_CLIENT
+(
+    ID                            VARCHAR(255)                            NOT NULL,
+    CLIENT_ID                     VARCHAR(255)                            NOT NULL,
+    CLIENT_ID_ISSUED_AT           TIMESTAMP     DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CLIENT_SECRET                 VARCHAR(255)  DEFAULT NULL,
+    CLIENT_SECRET_EXPIRES_AT      TIMESTAMP     DEFAULT NULL,
+    CLIENT_NAME                   VARCHAR(255)                            NOT NULL,
+    CLIENT_AUTHENTICATION_METHODS VARCHAR(1000)                           NOT NULL,
+    AUTHORIZATION_GRANT_TYPES     VARCHAR(1000)                           NOT NULL,
+    REDIRECT_URIS                 VARCHAR(1000) DEFAULT NULL,
+    SCOPES                        VARCHAR(1000)                           NOT NULL,
+    CLIENT_SETTINGS               VARCHAR(2000)                           NOT NULL,
+    TOKEN_SETTINGS                VARCHAR(2000)                           NOT NULL,
+    PRIMARY KEY (ID)
 );

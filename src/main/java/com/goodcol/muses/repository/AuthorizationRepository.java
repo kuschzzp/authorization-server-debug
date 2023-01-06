@@ -1,8 +1,6 @@
 package com.goodcol.muses.repository;
 
-import com.goodcol.muses.constants.DataSourceConstants;
 import com.goodcol.muses.entity.OauthAuthorization;
-import com.goodcol.muses.utils.CommonUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -18,16 +16,6 @@ import java.util.Optional;
  */
 @Slf4j
 public class AuthorizationRepository {
-
-    private final static String AUTHORIZATION_CODE_VALUE_MYSQL = " authorization_code_value = ? ";
-    private final static String AUTHORIZATION_CODE_VALUE_ORACLE = " dbms_lob.compare(authorization_code_value, " +
-            "to_clob(?)) = 0 ";
-
-    private final static String ACCESS_TOKEN_VALUE_MYSQL = " access_token_value = ? ";
-    private final static String ACCESS_TOKEN_VALUE_ORACLE = " dbms_lob.compare(access_token_value, to_clob(?)) = 0 ";
-
-    private final static String REFRESH_TOKEN_VALUE_MYSQL = " refresh_token_value = ? ";
-    private final static String REFRESH_TOKEN_VALUE_ORACLE = " dbms_lob.compare(refresh_token_value, to_clob(?)) = 0 ";
 
     @Resource
     private JdbcTemplate jdbcOperations;
@@ -171,15 +159,6 @@ public class AuthorizationRepository {
         return Optional.ofNullable(authorization);
     }
 
-    private String dbType() {
-        Optional<String> databaseType = CommonUtils.getDatabaseType(jdbcOperations);
-        if (databaseType.isPresent()) {
-            return databaseType.get();
-        } else {
-            throw new RuntimeException("不支持的数据源类型");
-        }
-    }
-
     public Optional<OauthAuthorization> findByAuthorizationCodeValue(String authorizationCode) {
         OauthAuthorization authorization = jdbcOperations.queryForObject("select id, registered_client_id, " +
                         "principal_name, authorization_grant_type, authorized_scopes," +
@@ -191,8 +170,7 @@ public class AuthorizationRepository {
                         "refresh_token_metadata, oidc_id_token_value, oidc_id_token_issued_at, " +
                         "oidc_id_token_expires_at, " +
                         "oidc_id_token_metadata, oidc_id_token_claims from oauth_authorization where " +
-                        (dbType().equals(DataSourceConstants.MYSQL) ? AUTHORIZATION_CODE_VALUE_MYSQL :
-                                AUTHORIZATION_CODE_VALUE_ORACLE),
+                        " authorization_code_value = ? ",
                 new BeanPropertyRowMapper<>(OauthAuthorization.class), authorizationCode);
         return Optional.ofNullable(authorization);
     }
@@ -208,8 +186,7 @@ public class AuthorizationRepository {
                         "refresh_token_metadata, oidc_id_token_value, oidc_id_token_issued_at, " +
                         "oidc_id_token_expires_at, " +
                         "oidc_id_token_metadata, oidc_id_token_claims from oauth_authorization where " +
-                        (dbType().equals(DataSourceConstants.MYSQL) ? ACCESS_TOKEN_VALUE_MYSQL :
-                                ACCESS_TOKEN_VALUE_ORACLE),
+                        " access_token_value = ? ",
                 new BeanPropertyRowMapper<>(OauthAuthorization.class), accessToken);
         return Optional.ofNullable(authorization);
     }
@@ -225,8 +202,7 @@ public class AuthorizationRepository {
                         "refresh_token_metadata, oidc_id_token_value, oidc_id_token_issued_at, " +
                         "oidc_id_token_expires_at, " +
                         "oidc_id_token_metadata, oidc_id_token_claims from oauth_authorization where " +
-                        (dbType().equals(DataSourceConstants.MYSQL) ? REFRESH_TOKEN_VALUE_MYSQL :
-                                REFRESH_TOKEN_VALUE_ORACLE),
+                        " refresh_token_value = ? ",
                 new BeanPropertyRowMapper<>(OauthAuthorization.class), refreshToken);
         return Optional.ofNullable(authorization);
     }
@@ -241,14 +217,11 @@ public class AuthorizationRepository {
                         "refresh_token_expires_at, refresh_token_metadata, oidc_id_token_value, " +
                         "oidc_id_token_issued_at, oidc_id_token_expires_at, oidc_id_token_metadata, " +
                         "oidc_id_token_claims from oauth_authorization where state = ? or " +
-                        (dbType().equals(DataSourceConstants.MYSQL) ? AUTHORIZATION_CODE_VALUE_MYSQL :
-                                AUTHORIZATION_CODE_VALUE_ORACLE) +
+                        " authorization_code_value = ? " +
                         "or " +
-                        (dbType().equals(DataSourceConstants.MYSQL) ? ACCESS_TOKEN_VALUE_MYSQL :
-                                ACCESS_TOKEN_VALUE_ORACLE) +
+                        " access_token_value = ? " +
                         "or " +
-                        (dbType().equals(DataSourceConstants.MYSQL) ? REFRESH_TOKEN_VALUE_MYSQL :
-                                REFRESH_TOKEN_VALUE_ORACLE),
+                        " refresh_token_value = ? ",
                 new BeanPropertyRowMapper<>(OauthAuthorization.class), token, token, token, token);
         return Optional.ofNullable(authorization);
     }

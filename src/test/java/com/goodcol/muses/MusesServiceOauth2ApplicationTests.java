@@ -2,39 +2,43 @@ package com.goodcol.muses;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.goodcol.muses.constants.DataSourceConstants;
 import com.goodcol.muses.entity.OauthAuthorization;
 import com.goodcol.muses.entity.OauthTestUser;
 import com.goodcol.muses.repository.AuthorizationRepository;
 import com.goodcol.muses.repository.ClientRepository;
 import com.goodcol.muses.repository.UserRepository;
 import com.goodcol.muses.service.DefaultRegisteredClientRepositoryImpl;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
-import org.springframework.util.Assert;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @SpringBootTest
 class MusesServiceOauth2ApplicationTests {
@@ -56,33 +60,17 @@ class MusesServiceOauth2ApplicationTests {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-    void test() {
-
-        Optional<OauthAuthorization> byAccessTokenValue = authorizationRepository.findByAccessTokenValue(
-                "eyJraWQiOiI0MTdhMTA0Mi04ODVlLTQwY2ItYjJlMS1hNDc5OTU0ZjdkN2MiLCJhbGciOiJSUzI1NiJ9" +
-                        ".eyJzdWIiOiJ1c2VyMSIsImF1ZCI6Im1lc3NhZ2luZy1jbGllbnQiLCJuYmYiOjE2NzExNTc3MDcsImlzcyI6Imh0dHA6Ly8xMjcuMC4wLjE6ODU1NSIsImFjY2Vzc3p6cHp6cHp6cCI6ImFjY2Vzc3p6cHp6cHp6cCIsIndhbmd3dSI6Indhbmd3dXdhbmd3dXdhbmd3dSIsImV4cCI6MTY3MTE1OTUwNywiaWF0IjoxNjcxMTU3NzA3fQ.g91krNKTD0B0CaxJ1LII80y9LNAaY0LohVAbCPLgSIBExadb0HElxaRmMPOxu9VToiQqhRA7ebXi5XueNkQfy5cEQXzRRnZ-ACmBoWFRosKy-kDaK0lPq16lhsVXsPt36LGkiJO08RKbwx_o089UTudaybcqkM-tOpwqoPJa52R0CoNI3KMhXPlasbWMUHdX7Vb40BSiu7J8f9VdXYkQqHwR5XZFLm905PGPP2Vg56V0P8Vu_iJIJKEjYR0stw1Wf_-Cz7YCg11nh-nFdCo-uxyX2QTM5F2t34FiwAS_OrmSwJLQzviGZ-L_ywOOb9D4kr6KwwSRwxt498kLkXhRAA");
-
-        Map<String, Object> map = null;
-        try {
-            map = objectMapper.readValue(objectMapper.writeValueAsString(byAccessTokenValue.get()),
-                    new TypeReference<Map<String, Object>>() {
-                    });
-            System.out.println(map.get("oidcIdTokenClaims"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    @Autowired
+    PasswordEncoder bCryptPasswordEncoder;
 
     /**
      * 模拟向数据库注册信息
      */
     @Test
     void contextLoads() {
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-
         /*
-         * 内置的客户端注册端点
+         * 内置的 OIDC 客户端注册端点,非客户端
+         *  https://openid.net/specs/openid-connect-registration-1_0.html#RegistrationRequest
          * org.springframework.security.oauth2.server.authorization.oidc.web.OidcClientRegistrationEndpointFilter
          */
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -142,28 +130,109 @@ class MusesServiceOauth2ApplicationTests {
 
     }
 
-    @Autowired
-    private List<DataSource> dataSourceList;
+    /**
+     * NimbusJwtDecoder 校验token是否有效的方式
+     */
+    @Test
+    public void nimbusJwt() {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri("http://127.0.0.1:8555/oauth2/jwks").build();
+        org.springframework.security.oauth2.jwt.Jwt jwt = decoder.decode("eyJraWQiOiJrdXNjaHp6cCIsImFsZyI6IlJTMjU2In0" +
+                ".eyJzdWIiOiJ6aGFuZ3NhbiIsImF1ZCI6Im1lc3NhZ2luZy1jbGllbnQiLCJuYmYiOjE2NzI3MTUxODgsInNjb3BlIjpbIm9wZW5pZCIsIm1lc3NhZ2UucmVhZCIsIm1lc3NhZ2Uud3JpdGUiXSwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo4NTU1IiwiaWt1biI6IuiUoeW-kOWdpCIsImV4cCI6MTY3MjcxNjk4OCwiaWt1bm5ubm5uIjoi5bCP6buR5a2QIiwiaWF0IjoxNjcyNzE1MTg4fQ.qvgEX0iF42ds3BoHUSGG0-ZhseWpDuoE7mDehXIxGonUXJIulB2UW0DlPUS4HLbx7v8EjYwbJwcZrL_XurcON-cF9wTSjuFJWHBtNSPK7juIsl9YX6ReALiQuPjdTVG_vLh5Hmz_hJzT3MsE0ZYhEalXFV1cSyYvgnbYQDuwX8How0Lz0rrTLxF4bTXWaEjza_ROpFRhr6Y8ha8XP32XsniGduGQOd6lJxubJ7DBiQSvIOUyy0TRYX6oa76pCTXHouyqXVWML-y_fUgBkGfREZg1ZaDzs1-AY7vfTvQi-FtDcFUSVzJxdao4WgeIUAKBCY7c8cAAF5mlkXYP0xup_7ZLYP_dI8gvNXvZ8Myb_0tqoc-3X2eyoSVVeU1OIZ1JEL2Kn7kewnagLY741GhXHAbl1oPVkeNcBUszdqq2A9TMQGg73rCI6fpcQuMx0EzKAvjCFdozYvOpm8WD8n1TCWonisPl_f5-NiAcMUa__D99PIIYfAXgfBJHOR4xuaNZqxDp70e7H6y_3Z-_mEtL6hxmnWLDNIBXn6UPZy_mE0TjuGHsb71Nfx7tga2ej9E5gEHRqFlE6Tw09BY21jAex6Vbv83m0_DOZdI28kRLYLL3qMeg8rntxwQWU23NN8coA9-k0RqTorJ5ce4uCAWFXlY0-ccZhpar51XTbUocx70");
+        Map<String, Object> claims = jwt.getClaims();
+        for (Map.Entry<String, Object> entry : claims.entrySet()) {
+            System.out.println(entry.getKey() + "----" + entry.getValue());
+        }
+    }
+
 
     @Test
-    public void en() {
-        OauthAuthorization authorization = jdbcTemplate.queryForObject("select id, registered_client_id, " +
-                        "principal_name, authorization_grant_type, authorized_scopes," +
-                        "attributes, state, authorization_code_value, authorization_code_issued_at, " +
-                        "authorization_code_expires_at, authorization_code_metadata, access_token_value, " +
-                        "access_token_issued_at, access_token_expires_at, access_token_metadata, access_token_type, " +
-                        "access_token_scopes, refresh_token_value, refresh_token_issued_at, refresh_token_expires_at," +
-                        " " +
-                        "refresh_token_metadata, oidc_id_token_value, oidc_id_token_issued_at, " +
-                        "oidc_id_token_expires_at, " +
-                        "oidc_id_token_metadata, oidc_id_token_claims from oauth_authorization where " +
-                        "dbms_lob.compare(authorization_code_value, to_clob(?)) = 0",
-                new BeanPropertyRowMapper<>(OauthAuthorization.class), "7nSZzLMIXw4ZqTzJoSA1dumeebnT3U1W8oE6jY" +
-                        "-5BivLonnpTIkCE0BOq61vJ1xf33IA4fHskp-CDFlPqQHClqp2rDTafzkMI7cMfcd126HE-L9DUjMM9-OQLHCnDMmt");
+    void test() {
 
-        System.out.println(authorization);
-        System.out.println(dataSourceList);
+        Optional<OauthAuthorization> byAccessTokenValue = authorizationRepository.findByAccessTokenValue(
+                "eyJraWQiOiI0MTdhMTA0Mi04ODVlLTQwY2ItYjJlMS1hNDc5OTU0ZjdkN2MiLCJhbGciOiJSUzI1NiJ9" +
+                        ".eyJzdWIiOiJ1c2VyMSIsImF1ZCI6Im1lc3NhZ2luZy1jbGllbnQiLCJuYmYiOjE2NzExNTc3MDcsImlzcyI6Imh0dHA6Ly8xMjcuMC4wLjE6ODU1NSIsImFjY2Vzc3p6cHp6cHp6cCI6ImFjY2Vzc3p6cHp6cHp6cCIsIndhbmd3dSI6Indhbmd3dXdhbmd3dXdhbmd3dSIsImV4cCI6MTY3MTE1OTUwNywiaWF0IjoxNjcxMTU3NzA3fQ.g91krNKTD0B0CaxJ1LII80y9LNAaY0LohVAbCPLgSIBExadb0HElxaRmMPOxu9VToiQqhRA7ebXi5XueNkQfy5cEQXzRRnZ-ACmBoWFRosKy-kDaK0lPq16lhsVXsPt36LGkiJO08RKbwx_o089UTudaybcqkM-tOpwqoPJa52R0CoNI3KMhXPlasbWMUHdX7Vb40BSiu7J8f9VdXYkQqHwR5XZFLm905PGPP2Vg56V0P8Vu_iJIJKEjYR0stw1Wf_-Cz7YCg11nh-nFdCo-uxyX2QTM5F2t34FiwAS_OrmSwJLQzviGZ-L_ywOOb9D4kr6KwwSRwxt498kLkXhRAA");
 
+        Map<String, Object> map = null;
+        try {
+            map = objectMapper.readValue(objectMapper.writeValueAsString(byAccessTokenValue.get()),
+                    new TypeReference<Map<String, Object>>() {
+                    });
+            System.out.println(map.get("oidcIdTokenClaims"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void jjwt() {
+        Date date = new Date();
+        JwtBuilder jwtBuilder = Jwts.builder()
+                .signWith(SignatureAlgorithm.HS256, "jwt-rule")
+                .setSubject("login")
+                //接收jwt的一方
+                .setAudience("web")
+                .setId(null)
+                //token颁发者
+                .setIssuer("zhangsan")
+                //某个时间点前无法使用
+                .setNotBefore(null)
+                .setIssuedAt(date)
+                .setExpiration(org.apache.commons.lang3.time.DateUtils.addSeconds(date, 1800))
+                .addClaims(Collections.singletonMap("666", "888"));
+        String newJwt = jwtBuilder.compact();
+        System.out.println(newJwt);
+        Jwt parse = Jwts.parser().setSigningKey("jwt-rule").parse(newJwt);
+    }
+
+
+    @Test
+    public void genJwtByNimbus() throws Exception {
+
+        Calendar signTime = Calendar.getInstance();
+        Date signTimeTime = signTime.getTime();
+        signTime.add(Calendar.MINUTE, 10);
+        Date expireTime = signTime.getTime();
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .issuer("http://localhost:18080")
+                .subject("userId")
+                .audience(Arrays.asList("https://app-one.com", "https://app-two.com"))
+                .expirationTime(expireTime)
+                .notBeforeTime(signTimeTime)
+                .issueTime(signTimeTime)
+                .jwtID(UUID.randomUUID().toString())
+                .claim("scope", "read write")
+                .build();
+
+
+        // 传入header 和 payload
+        SignedJWT signedJWT =
+                new SignedJWT(
+                        new JWSHeader
+                                .Builder(JWSAlgorithm.HS256)
+                                .type(JOSEObjectType.JWT)
+                                .build(),
+                        claimsSet);
+
+        String jwtSecret =
+                "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj";
+
+        MACSigner macSigner = new MACSigner(jwtSecret);
+        MACVerifier macVerifier = new MACVerifier(jwtSecret);
+
+        // 进行签名
+        signedJWT.sign(macSigner);
+        String token = signedJWT.serialize();
+        System.out.println("token---->>>>" + token);
+
+        //校验
+        SignedJWT parse = SignedJWT.parse(token);
+        if (!parse.verify(macVerifier)) {
+            throw new RuntimeException("无效的token");
+        }
+        System.out.println(parse.getJWTClaimsSet().getClaims());
+
+        // !!!!!!!! TNND  好像jjwt 无法解析 nimbus 生成的token !!!!!!!!!!!!
+        Jwts.parser().setSigningKey(jwtSecret).parse(token);
     }
 
 
