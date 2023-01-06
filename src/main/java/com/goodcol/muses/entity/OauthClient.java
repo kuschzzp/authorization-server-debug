@@ -37,7 +37,19 @@ public class OauthClient {
      */
     private String clientName;
     /**
-     * 客户端授权方式，例如： client_secret_basic
+     * <pre>
+     * 客户端认证的方式：
+     * 1. client_secret_basic
+     *     通常情况下都是用这种：添加Authorization header,值为client_id:client_secret Base64编码后的值
+     * 2. client_secret_post
+     *      在body添加grant_type=client_credentials、client_id=clientId、client_secret=clientSecret
+     * 3. client_secret_jwt
+     *    使用客户端信息生成一个jwt_token，client_assertion=jwt_token、client_assertion_type='urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
+     * 4. private_key_jwt
+     *    在client_secret_jwt的基础上使用一个非对称秘钥对生成的jwt进行加密。
+     * 5. none
+     *    无
+     * </pre>
      */
     private String clientAuthenticationMethods;
     /**

@@ -28,7 +28,7 @@ CREATE TABLE oauth_authorization
     refresh_token_expires_at      timestamp     DEFAULT NULL,
     -- 不放东西基本不会超过 100
     refresh_token_metadata        varchar(255)  DEFAULT NULL,
-    -- 放置20个属性 约两千多
+    -- 放置30个属性 约两千多
     oidc_id_token_value           varchar(3000) DEFAULT NULL,
     oidc_id_token_issued_at       timestamp     DEFAULT NULL,
     oidc_id_token_expires_at      timestamp     DEFAULT NULL,
