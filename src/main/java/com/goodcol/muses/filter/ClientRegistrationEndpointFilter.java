@@ -63,6 +63,7 @@ public class ClientRegistrationEndpointFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         if (!this.clientRegistrationEndpointMatcher.matches(request)) {
             filterChain.doFilter(request, response);
+            return;
         }
 
         RegisterClientEntity entity = toEntity(request.getParameterMap());
@@ -90,7 +91,7 @@ public class ClientRegistrationEndpointFilter extends OncePerRequestFilter {
         Instant now = Instant.now();
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId(entity.getClientId())
-                .clientSecret(passwordEncoder.encode(entity.getScopes()))
+                .clientSecret(passwordEncoder.encode(entity.getSecret()))
                 .clientIdIssuedAt(now)
                 .clientSecretExpiresAt(entity.getClientSecretSecondsToLive() == null ? null :
                         now.plusSeconds(entity.getClientSecretSecondsToLive()))
