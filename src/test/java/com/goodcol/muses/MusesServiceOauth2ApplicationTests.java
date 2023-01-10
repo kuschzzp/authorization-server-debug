@@ -8,17 +8,9 @@ import com.goodcol.muses.repository.AuthorizationRepository;
 import com.goodcol.muses.repository.ClientRepository;
 import com.goodcol.muses.repository.UserRepository;
 import com.goodcol.muses.service.DefaultRegisteredClientRepositoryImpl;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.goodcol.muses.utils.JwtUtils;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +30,9 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @SpringBootTest
 class MusesServiceOauth2ApplicationTests {
@@ -155,7 +149,7 @@ class MusesServiceOauth2ApplicationTests {
         Map<String, Object> map = null;
         try {
             map = objectMapper.readValue(objectMapper.writeValueAsString(byAccessTokenValue.get()),
-                    new TypeReference<Map<String, Object>>() {
+                    new TypeReference<>() {
                     });
             System.out.println(map.get("oidcIdTokenClaims"));
         } catch (Exception e) {
@@ -165,75 +159,11 @@ class MusesServiceOauth2ApplicationTests {
 
     @Test
     public void jjwt() {
-        Date date = new Date();
-        JwtBuilder jwtBuilder = Jwts.builder()
-                .signWith(SignatureAlgorithm.HS256, "jwt-rule")
-                .setSubject("login")
-                //接收jwt的一方
-                .setAudience("web")
-                .setId(null)
-                //token颁发者
-                .setIssuer("zhangsan")
-                //某个时间点前无法使用
-                .setNotBefore(null)
-                .setIssuedAt(date)
-                .setExpiration(org.apache.commons.lang3.time.DateUtils.addSeconds(date, 1800))
-                .addClaims(Collections.singletonMap("666", "888"));
-        String newJwt = jwtBuilder.compact();
-        System.out.println(newJwt);
-        Jwt parse = Jwts.parser().setSigningKey("jwt-rule").parse(newJwt);
+        Jws<Claims> claimsJws = JwtUtils.parseJWT(JwtUtils.JWT_SEPARATOR + "eyJhbGciOiJIUzI1NiJ9" +
+                        ".eyJzdWIiOiJsb2dpbiIsImp0aSI6ImNjZDRjOTgyLWVjNzEtNGM3My04Y2VhLTQ3Mjc1YWJkNTljNyIsImlzcyI6Ik9BdXRoMiIsImlhdCI6MTY3MzM0MjQ1MCwiZXhwIjoxNjczMzQ0MjUwLCJsb2dpbklkIjoiemhhbmdzYW4iLCJmb3JjZVJlc2V0UHdkIjoiJDJhJDEwJDZrc2dNY0ZJU3pjQloyeXBobUh6OS5wOFZpcFhCMzg5VnFqbXNLWFVVTDRsemUwS1BhdjJpIiwic2NvcGUiOlsib3BlbmlkIiwibml1Ymk2NjYiXX0.d4Zw2X2DN8JJAlmuREUJyOIfE9lUX3JHoUQ4gZJyHI8",
+                "thealgorithm-specificsigningkeytousetodigitallysigntheJWT");
+
+        System.out.println(claimsJws.getBody());
     }
-
-
-    @Test
-    public void genJwtByNimbus() throws Exception {
-
-        Calendar signTime = Calendar.getInstance();
-        Date signTimeTime = signTime.getTime();
-        signTime.add(Calendar.MINUTE, 10);
-        Date expireTime = signTime.getTime();
-        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .issuer("http://localhost:18080")
-                .subject("userId")
-                .audience(Arrays.asList("https://app-one.com", "https://app-two.com"))
-                .expirationTime(expireTime)
-                .notBeforeTime(signTimeTime)
-                .issueTime(signTimeTime)
-                .jwtID(UUID.randomUUID().toString())
-                .claim("scope", "read write")
-                .build();
-
-
-        // 传入header 和 payload
-        SignedJWT signedJWT =
-                new SignedJWT(
-                        new JWSHeader
-                                .Builder(JWSAlgorithm.HS256)
-                                .type(JOSEObjectType.JWT)
-                                .build(),
-                        claimsSet);
-
-        String jwtSecret =
-                "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj";
-
-        MACSigner macSigner = new MACSigner(jwtSecret);
-        MACVerifier macVerifier = new MACVerifier(jwtSecret);
-
-        // 进行签名
-        signedJWT.sign(macSigner);
-        String token = signedJWT.serialize();
-        System.out.println("token---->>>>" + token);
-
-        //校验
-        SignedJWT parse = SignedJWT.parse(token);
-        if (!parse.verify(macVerifier)) {
-            throw new RuntimeException("无效的token");
-        }
-        System.out.println(parse.getJWTClaimsSet().getClaims());
-
-        // !!!!!!!! TNND  好像jjwt 无法解析 nimbus 生成的token !!!!!!!!!!!!
-        Jwts.parser().setSigningKey(jwtSecret).parse(token);
-    }
-
 
 }

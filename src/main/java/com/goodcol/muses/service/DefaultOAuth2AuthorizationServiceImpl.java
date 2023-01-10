@@ -2,11 +2,9 @@ package com.goodcol.muses.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.goodcol.muses.entity.OauthAuthorization;
 import com.goodcol.muses.entity.OauthTestUser;
 import com.goodcol.muses.jackson.OauthTestUserMixin;
-import com.goodcol.muses.jackson.SingletonMapMixin;
 import com.goodcol.muses.repository.AuthorizationRepository;
 import com.goodcol.muses.utils.CommonUtils;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -29,7 +27,10 @@ import org.springframework.util.StringUtils;
 
 import java.sql.Date;
 import java.time.Instant;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.TimeZone;
 import java.util.function.Consumer;
 
 public class DefaultOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationService {
@@ -49,10 +50,12 @@ public class DefaultOAuth2AuthorizationServiceImpl implements OAuth2Authorizatio
         this.objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
         this.objectMapper.registerModules(SecurityJackson2Modules.getModules(classLoader));
         this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
-        this.objectMapper.registerModule(new JavaTimeModule());
+        // -------- 2023-01-10 特喵的，这段注释掉竟然没问题，我记得当初不写报错很多的，FUCK！ --------
+        //        this.objectMapper.registerModule(new JavaTimeModule());
         //解决 Collections.singletonMap 不在 allow list 的问题
-        this.objectMapper.addMixIn(Collections.singletonMap(String.class, Object.class).getClass(),
-                SingletonMapMixin.class);
+        //        this.objectMapper.addMixIn(Collections.singletonMap(String.class, Object.class).getClass(),
+        //                SingletonMapMixin.class);
+        // -------- 2023-01-10 特喵的，这段注释掉竟然没问题，我记得当初不写报错很多的，FUCK！ --------
         //解决 OauthTestUser 不在 allow list 的问题
         this.objectMapper.addMixIn(OauthTestUser.class, OauthTestUserMixin.class);
     }

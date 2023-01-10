@@ -2,12 +2,9 @@
 package com.goodcol.muses.configurations;
 
 import com.goodcol.muses.entity.OauthTestUser;
-import com.goodcol.muses.jose.Jwks;
 import com.goodcol.muses.repository.UserRepository;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
+import com.goodcol.muses.sign.MyJwtDecoder;
+import com.goodcol.muses.sign.MyJwtEncoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -18,8 +15,8 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
@@ -45,6 +42,15 @@ public class AuthorizationServerConfig {
 
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
 
+        //        //返回之前操作token，玩点骚的就是，不返回token，返回个乱七八糟的东西
+        //        authorizationServerConfigurer.tokenEndpoint(item -> {
+        //            item.accessTokenResponseHandler((request, response, authentication) -> {
+        //                Set<String> scopes =
+        //                        ((OAuth2AccessTokenAuthenticationToken) authentication).getAccessToken().getScopes();
+        //                response.setContentType("text/html;charset=utf-8");
+        //                response.getWriter().write("操作中成功" + scopes);
+        //            });
+        //        });
 
         authorizationServerConfigurer
                 .authorizationEndpoint(authorizationEndpoint ->
@@ -158,21 +164,34 @@ public class AuthorizationServerConfig {
             }
         };
     }
+    // -------- 2023-01-10 尝试使用我自己常用的 jjwt 包，来进行token的加密和解密，虽说官方觉得nimbus-jose-jwt牛逼，但我头铁 --------
+    //    @Bean
+    //    public JWKSource<SecurityContext> jwkSource() {
+    //        RSAKey rsaKey = Jwks.generateRsa();
+    //        JWKSet jwkSet = new JWKSet(rsaKey);
+    //        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
+    //    }
+    //
+    //    /**
+    //     * JwtDecoder的一个实例，用于验证访问令牌。
+    //     */
+    //    @Bean
+    //    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+    //        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+    //    }
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource() {
-        RSAKey rsaKey = Jwks.generateRsa();
-        JWKSet jwkSet = new JWKSet(rsaKey);
-        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
+    public JwtDecoder jwtDecoder() {
+        return new MyJwtDecoder();
     }
 
-    /**
-     * JwtDecoder的一个实例，用于验证访问令牌。
-     */
     @Bean
-    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+    public JwtEncoder jwtEncoder(UserRepository userRepository) {
+        return new MyJwtEncoder(userRepository);
     }
+
+    // -------- 2023-01-10 尝试使用我自己常用的 jjwt 包，来进行token的加密和解密，虽说官方觉得nimbus-jose-jwt牛逼，但我头铁 --------
+
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
