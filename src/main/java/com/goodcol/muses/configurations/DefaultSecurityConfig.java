@@ -49,6 +49,8 @@ public class DefaultSecurityConfig {
 
     @Bean
     PasswordEncoder passwordEncoder() {
+        //自定义的密码加密规则
+        //        return new MyPasswordEncoder();
         return new BCryptPasswordEncoder();
     }
 }
