@@ -1,4 +1,4 @@
-# muses-service-oauth2
+# authorization-server-debug
 
 基于spring-authorization-server 1.0.0的功能调试
 
@@ -9,3 +9,4 @@
 5. 自定义token生成规则，可以让其生成符合其他系统规则的token
 6. 用户登录使用数据库中的用户信息
 7. 自定义密码加密方式、主要是用在注册客户端的secret和用户的密码
+8. 调试OIDC的自带注册接口 /connect/register

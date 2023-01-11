@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.goodcol.muses</groupId>
-    <artifactId>muses-service-oauth2</artifactId>
+    <artifactId>authorization-server-debug</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>muses-service-oauth2</name>
-    <description>muses-service-oauth2</description>
+    <name>authorization-server-debug</name>
+    <description>authorization-server-debug</description>
     <properties>
         <java.version>17</java.version>
     </properties>
