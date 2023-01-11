@@ -57,18 +57,45 @@ class MusesServiceOauth2ApplicationTests {
     @Autowired
     PasswordEncoder bCryptPasswordEncoder;
 
+    /*
+    /connect/register
+    {
+        "client_id": "postman-oidc",
+        "client_id_issued_at": "",
+        "client_name": "postman-oidc",
+        "client_secret": "postman-oidc",
+        "client_secret_expires_at": "",
+        "token_endpoint_auth_method": "client_secret_basic",
+        "scope": ["openid","profile","client.create","message.read","niubi666","client.read","message.write"],
+        "grant_types": ["refresh_token","client_credentials","authorization_code"],
+        "redirect_uris": ["http://127.0.0.1:8555/hahahaha","http://127.0.0.1:8555/test/test1"],
+        "response_types": "",
+        "id_token_signed_response_alg": "",
+        "jwks_uri": "",
+        "token_endpoint_auth_signing_alg": ""
+    }
+     */
+
     /**
      * 模拟向数据库注册信息
      */
     @Test
     void contextLoads() {
+        //先删除数据库数据再新增，每次手动删除，烦死了
+        jdbcTemplate.update("delete from oauth_test_user where 1=1");
+        jdbcTemplate.update("delete from oauth_client where 1=1");
+        jdbcTemplate.update("delete from oauth_authorization where 1=1");
+        jdbcTemplate.update("delete from oauth_authorization_consent where 1=1");
+
         /*
          * 内置的 OIDC 客户端注册端点,非客户端
          *  https://openid.net/specs/openid-connect-registration-1_0.html#RegistrationRequest
          * org.springframework.security.oauth2.server.authorization.oidc.web.OidcClientRegistrationEndpointFilter
+         * https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
          */
+        String clientId = "messaging-client";
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("messaging-client")
+                .clientId(clientId)
                 //                .clientSecret("{noop}secret")
                 .clientSecret(bCryptPasswordEncoder.encode("secret"))
                 .clientIdIssuedAt(Instant.now())
@@ -86,6 +113,11 @@ class MusesServiceOauth2ApplicationTests {
                 .scope("message.read")
                 .scope("message.write")
                 .scope("niubi666")
+                // OIDC 注册客户端端点、读取客户端端点必须要的scope，但是仅能包含其一个，
+                // 同时你 获取code的那个URL必须去掉 scope 里面的 openid，否则会自动添加到scope，即使你只选了 client.create
+                // 那最后的scope还是会包含openid，导致注册端点的scope校验过不去
+                .scope("client.create")
+                .scope("client.read")
                 .clientSettings(
                         ClientSettings.builder()
                                 .requireAuthorizationConsent(true)
@@ -102,25 +134,26 @@ class MusesServiceOauth2ApplicationTests {
 
         RegisteredClientRepository registeredClientRepository
                 = new DefaultRegisteredClientRepositoryImpl(clientRepository);
-        RegisteredClient byClientId = registeredClientRepository.findByClientId("messaging-client");
+        RegisteredClient byClientId = registeredClientRepository.findByClientId(clientId);
         if (byClientId != null) {
-            throw new RuntimeException("客户端ID已存在！");
+            throw new RuntimeException("客户端ID" + clientId + "已存在！");
         }
         registeredClientRepository.save(registeredClient);
         System.out.println("新建注册的客户端信息成功======================================");
 
+        String username = "zhangsan";
         OauthTestUser testUser = new OauthTestUser();
-        testUser.setUsername("zhangsan");
+        testUser.setUsername(username);
         //        testUser.setPassword("{noop}123123");
         testUser.setPassword(bCryptPasswordEncoder.encode("123123"));
-        testUser.setAuthCodes("A,B,C,D,E,F");
+        testUser.setAuthCodes("authCodeOne,authCodeTwo");
 
-        Optional<OauthTestUser> zhangsan = userRepository.findUserByUsername("zhangsan");
+        Optional<OauthTestUser> zhangsan = userRepository.findUserByUsername(username);
         if (zhangsan.isPresent()) {
             throw new RuntimeException("用户zhangsan已存在！");
         }
         userRepository.save(testUser);
-        System.out.println("新建用户 zhangsan----123123 成功======================================");
+        System.out.println("新建用户 " + username + "----123123 成功======================================");
 
     }
 

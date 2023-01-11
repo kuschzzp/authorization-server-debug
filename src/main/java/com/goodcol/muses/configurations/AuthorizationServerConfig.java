@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -75,16 +76,19 @@ public class AuthorizationServerConfig {
                 .oidc(oidc -> {
                             //这里是往  /userinfo 接口返回值放内容
                             oidc.userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint.userInfoMapper(
-                                    oidcUserInfoAuthenticationContext -> {
-                                        OAuth2AccessToken accessToken =
-                                                oidcUserInfoAuthenticationContext.getAccessToken();
-                                        Map<String, Object> claims = new HashMap<>();
-                                        claims.put("accessToken", accessToken);
-                                        claims.put("sub",
-                                                oidcUserInfoAuthenticationContext.getAuthorization().getPrincipalName());
-                                        return new OidcUserInfo(claims);
-
-                                    }));
+                                            oidcUserInfoAuthenticationContext -> {
+                                                OAuth2AccessToken accessToken =
+                                                        oidcUserInfoAuthenticationContext.getAccessToken();
+                                                Map<String, Object> claims = new HashMap<>();
+                                                claims.put("hahahahaaaaa", accessToken.getScopes());
+                                                claims.put("sub",
+                                                        oidcUserInfoAuthenticationContext.getAuthorization().getPrincipalName());
+                                                return new OidcUserInfo(claims);
+                                            }))
+                                    //开启使用OIDC客户端注册断点，需要一个仅包含 client.create 的scope 的已注册客户端
+                                    // https://docs.spring.io/spring-authorization-server/docs/current/reference/html/protocol-endpoints.html#oidc-client-registration-endpoint
+                                    .clientRegistrationEndpoint(Customizer.withDefaults())
+                            ;
                         }
                 );
 

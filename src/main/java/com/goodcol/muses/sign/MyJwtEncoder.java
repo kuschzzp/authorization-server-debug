@@ -4,13 +4,13 @@ import com.goodcol.muses.entity.OauthTestUser;
 import com.goodcol.muses.repository.UserRepository;
 import com.goodcol.muses.utils.JwtUtils;
 import io.jsonwebtoken.JwtBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -38,15 +38,19 @@ public class MyJwtEncoder implements JwtEncoder {
         Assert.notNull(parameters, "parameters cannot be null");
 
         JwtClaimsSet claims = parameters.getClaims();
+        //这个一般情况下会放登录用户的账号
         String subject = claims.getSubject();
 
-        //这里可以根据用户账号数据库查询数据，填充到access_token里面
-        Optional<OauthTestUser> userByUsername = userRepository.findUserByUsername(subject);
-        if (userByUsername.isEmpty()) {
-            throw new RuntimeException("数据库不存在该用户信息。");
-        }
+        //这里这里可以根据用户账号数据库查询数据，填充到access_token里面
+        //        Optional<OauthTestUser> userByUsername = userRepository.findUserByUsername(subject);
+        //        if (userByUsername.isEmpty()) {
+        //            throw new RuntimeException("数据库不存在该用户信息。");
+        //        }
 
-        OauthTestUser testUser = userByUsername.get();
+        OauthTestUser testUser = new OauthTestUser();
+        testUser.setUsername(StringUtils.isBlank(subject) ? "123123123" : subject);
+        testUser.setPassword("adsadsfasd");
+        testUser.setAuthCodes("afasdfadfsaadse");
 
         JwtBuilder jwtBuilder = JwtUtils.buildJWTBuilder(
                         JwtUtils.JWT_ALG,
