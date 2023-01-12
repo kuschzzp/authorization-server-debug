@@ -1,5 +1,6 @@
 package com.goodcol.muses.configurations;
 
+import com.goodcol.muses.filter.MyWebAuthenticationDetailsSource;
 import com.goodcol.muses.service.MySQLUserDetailServiceImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * 基础配置
  */
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity(debug = false)
 @Configuration(proxyBeanMethods = false)
 public class DefaultSecurityConfig {
 
@@ -29,6 +30,7 @@ public class DefaultSecurityConfig {
                 .formLogin(configurer ->
                         configurer.loginPage("/login")
                                 .loginProcessingUrl("/oauth2/login")
+                                .authenticationDetailsSource(new MyWebAuthenticationDetailsSource())
                 )
                 //这个如果你自定义的页面中没有一个csrf_token的话得配置，不然最初的过滤器都通过不了
                 .csrf().disable();
