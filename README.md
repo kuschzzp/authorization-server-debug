@@ -1,6 +1,6 @@
 # authorization-server-debug
 
-基于spring-authorization-server 1.0.0的功能调试
+基于spring-authorization-server 1.0.1 的功能调试
 
 1. 自定义登录页面、授权选择scope页面
 2. 使用jdbcTemplate接入MySQL、Oracle数据库
